@@ -1,178 +1,178 @@
-# md2docx
+# md2docx (v2.1)
 
-Script en Python que convierte archivos Markdown (`.md`) a Word (`.docx`) usando [pandoc](https://pandoc.org), con plantilla opcional para controlar el aspecto del documento final.
+Herramienta en Python con **interfaz gráfica nativa** y **modo línea de comandos (CLI)** que convierte archivos Markdown (`.md`) a documentos de Word (`.docx`) utilizando [pandoc](https://pandoc.org). Permite aplicar una plantilla `.docx` para controlar estilos, márgenes, encabezados y pies de página sin dependencias externas de Python.
 
-## Estado
+---
 
-**v1. No se ha ejecutado contra una instalación real de pandoc en el momento de escribir esto.** Antes de usarlo en un entregable, haz una primera prueba con un `.md` corto y otro con una tabla ancha. Si algo falla, el error de pandoc se muestra tal cual en la terminal.
+## Novedades de la v2.1
 
-## Qué hace
+- **Interfaz gráfica (GUI) por defecto:** Al abrir el programa (por terminal o doble clic) se muestra una ventana intuitiva para seleccionar archivos y opciones sin escribir comandos.
+- **Ruta de guardado automática:** El archivo `.docx` se genera automáticamente en la **misma carpeta** y con el **mismo nombre** que el `.md` de origen, mostrando una vista previa de la ruta en tiempo real.
+- **Gestión inteligente de conflictos y bloqueos:** Permite elegir entre preguntar antes de sobrescribir, sobrescribir directamente o crear versiones incrementales (`_v2.docx`, `_v3.docx`...). También detecta si el archivo está abierto en Word para evitar errores de permisos.
+- **Accesos rápidos post-conversión:** Botones para abrir directamente el `.docx` generado en Word o abrir la carpeta contenedora.
+- **Blindaje y compatibilidad:** Compatible desde **Python 3.8** en adelante (incluyendo Python 3.15). Incluye captura de errores fatales mediante cuadros de diálogo nativos de Windows para evitar cierres silenciosos al ejecutar con doble clic.
 
-- Pide el archivo `.md` (por argumento o de forma interactiva).
-- Aplica una plantilla `.docx` si se desea (estilos, márgenes, encabezado y pie).
-- Genera el `.docx` junto al `.md` de origen, o en la ruta que indiques.
-- Genera la plantilla base de pandoc con un solo comando, para que la edites en Word.
+---
 
-## Qué NO hace (v1)
+## Qué hace y qué no hace
 
-- No crea portadas corporativas, logos ni datos de proyecto: pandoc solo hereda **estilos, márgenes, encabezados y pies** de la plantilla.
-- No postprocesa el `.docx` (anchos de tabla, campos, numeración avanzada). Está previsto para una v2 con `python-docx`.
-- No acepta plantillas `.dotx`: hay que guardarlas como `.docx`.
-- No convierte de `.docx` a `.md`.
+### Qué hace
+- Convierte `.md` y `.markdown` a `.docx` mediante `pandoc`.
+- Aplica los estilos, márgenes, encabezados y pies de página de una plantilla `.docx` (`--reference-doc`).
+- Crea la plantilla base de pandoc con un clic desde la interfaz (o mediante `--init-template`).
+- Resuelve rutas relativas de imágenes tomando como base la carpeta del archivo `.md` (`--resource-path`).
+- Inserta tabla de contenidos (`--toc`) y numeración de capítulos/secciones (`--number-sections`) de forma opcional.
+
+### Qué NO hace
+- No crea portadas corporativas dinámicas, logos ni metadatos complejos: pandoc hereda únicamente **estilos, márgenes, encabezados y pies** de la plantilla.
+- No postprocesa el `.docx` tras generarlo (por ejemplo, ajuste automático de anchos de columna en tablas).
+- No admite plantillas `.dotx`: la plantilla debe guardarse siempre como `.docx`.
+- No realiza la conversión inversa (de `.docx` a `.md`).
+
+---
 
 ## Requisitos
 
 | Requisito | Detalle |
 |---|---|
-| Python | 3.10 o superior (usa la sintaxis `Path \| None`) |
-| pandoc | Instalado y accesible en el PATH (`pandoc --version` debe funcionar) |
-| Dependencias Python | Ninguna: solo biblioteca estándar (`argparse`, `subprocess`, `shutil`, `pathlib`, `sys`) |
-| Word | Solo para editar la plantilla y abrir el resultado |
+| **Python** | 3.8 o superior (`tkinter` incluido en las instalaciones estándar de Windows/macOS) |
+| **pandoc** | Instalado y accesible en el `PATH` del sistema (`pandoc --version` debe responder) |
+| **Dependencias Python** | **Ninguna externa.** Solo usa la biblioteca estándar (`tkinter`, `argparse`, `subprocess`, `shutil`, `pathlib`, `os`, `sys`, `traceback`, `ctypes`) |
+| **Microsoft Word** | Opcional, solo necesario para editar la plantilla de estilos y revisar los `.docx` |
+
+---
 
 ## Estructura de carpetas
 
-```
+```text
 md2docx/
-├── md2docx.py
-├── README.md
+├── md2docx.py                  # Código principal (GUI + CLI)
+├── README.md                   # Esta documentación
 └── plantillas/
-    └── plantilla_base.docx     (se crea con --init-template)
+    └── plantilla_base.docx     # Se genera desde la GUI o con --init-template
 ```
 
-Los `.md` pueden estar en cualquier sitio. La salida se guarda junto al origen salvo que indiques `-o`.
+> Los archivos `.md` pueden estar ubicados en cualquier carpeta o unidad (local o sincronizada como Google Drive). El `.docx` resultante se guardará siempre junto al `.md` original (salvo que uses `-o` en modo CLI).
 
-## Puesta en marcha (una sola vez)
+---
 
-1. Instala pandoc y comprueba: `pandoc --version`.
-2. Crea la plantilla base:
-   ```
-   python md2docx.py --init-template
-   ```
-3. Abre `plantillas/plantilla_base.docx` en Word y modifica los estilos con **Modificar estilo** (no con formato directo):
-   - `Title`, `Heading 1`, `Heading 2`, `Heading 3`
-   - `Body Text`, `First Paragraph`, `Compact`
-   - `Table`, `Source Code`
-   - Márgenes, encabezado y pie de página
-4. Guarda como `.docx` (nunca `.dotx`).
+## Puesta en marcha
 
-## Uso
+1. **Instala pandoc** desde [pandoc.org/installing.html](https://pandoc.org/installing.html) y verifica en una terminal que `pandoc --version` funciona.
+2. **Inicia la aplicación** haciendo doble clic sobre `md2docx.py` (o ejecutando `python md2docx.py` en la terminal).
+3. **Crea tu plantilla base (una sola vez):**
+   - Pulsa el botón **"Crear / regenerar plantilla_base.docx"** en la interfaz (o ejecuta `python md2docx.py --init-template`).
+   - Abre `plantillas/plantilla_base.docx` en Word.
+   - Edita los estilos usando **Modificar estilo** (nunca formato directo sobre el texto):
+     - `Title`, `Heading 1`, `Heading 2`, `Heading 3`
+     - `Body Text`, `First Paragraph`, `Compact`
+     - `Table`, `Source Code`
+     - Márgenes, encabezados y pies de página.
+   - Guarda el archivo como `.docx` (nunca `.dotx`).
 
-### Modo interactivo
+---
 
-```
-python md2docx.py
-```
+## Guía de uso
 
-Pregunta, por este orden: archivo `.md`, plantilla (Enter = la de por defecto si existe, si no, ninguna), índice y numeración de secciones. Limpia comillas y espacios, así que puedes arrastrar archivos a la terminal.
+### 1. Modo interfaz gráfica (recomendado)
 
-### Modo línea de comandos
+Ejecuta `python md2docx.py` o haz doble clic sobre `md2docx.py`.
 
-```
+1. **Archivo de origen y destino:** Pulsa **Examinar...** y selecciona tu archivo `.md`. En el recuadro *"Se guardará en:"* verás la ruta exacta del `.docx` que se creará en esa misma carpeta, junto con un aviso si ya existe un archivo previo.
+2. **Plantilla de estilos:** Deja marcada la casilla si quieres aplicar `plantilla_base.docx` (o pulsa **Elegir...** para seleccionar otra plantilla `.docx` distinta). Desmárcala si prefieres el estilo neutro por defecto de pandoc.
+3. **Opciones de documento:**
+   - Marca si deseas incluir **tabla de contenidos / índice (TOC)** o **numerar capítulos y secciones**.
+   - Selecciona el comportamiento si el `.docx` ya existe: *Preguntar antes*, *Crear versión (`_v2`, `_v3`...)* o *Sobrescribir directamente*.
+4. **Convertir:** Pulsa **Convertir a Word (.docx)**. Al terminar, puedes usar los botones **Abrir Word** o **Abrir carpeta** para revisar el resultado de inmediato.
+
+> **Nota para usuarios de Windows:** Si quieres abrir la interfaz gráfica sin que aparezca ninguna consola negra detrás al hacer doble clic, puedes crear un archivo `Iniciar_md2docx.bat` en la misma carpeta con el siguiente contenido:
+> ```bat
+> @echo off
+> start "" pythonw "%~dp0md2docx.py"
+> ```
+
+---
+
+### 2. Modo línea de comandos (CLI)
+
+Si pasas un archivo `.md` como argumento o usas `--cli`, el programa funciona en consola sin abrir ventanas gráficas:
+
+```bash
+# Conversión rápida usando plantilla_base.docx si existe
 python md2docx.py informe.md
-python md2docx.py informe.md -t otra_plantilla.docx
-python md2docx.py informe.md --toc --number-sections
+
+# Especificar plantilla personalizada, índice y numeración
+python md2docx.py informe.md -t otra_plantilla.docx --toc --number-sections
+
+# Guardar en una ruta distinta a la carpeta del .md
 python md2docx.py informe.md -o C:\Salidas\informe_final.docx
+
+# Convertir sin aplicar ninguna plantilla
 python md2docx.py informe.md --no-template
+
+# Generar la plantilla base por consola
 python md2docx.py --init-template
+
+# Forzar el modo interactivo clásico por preguntas en terminal
+python md2docx.py --cli
 ```
 
-### Opciones
+#### Referencia de argumentos CLI
 
-| Opción | Efecto |
+| Opción | Descripción |
 |---|---|
-| `input` | Archivo `.md` de entrada (opcional: si falta, modo interactivo) |
-| `-t`, `--template` | Plantilla `.docx` a usar como `--reference-doc` |
-| `--no-template` | No usar plantilla, ni siquiera la de por defecto |
-| `-o`, `--output` | Ruta del `.docx` de salida |
-| `--toc` | Inserta índice de contenidos |
-| `--number-sections` | Numera los capítulos y apartados |
-| `--lang` | Idioma del documento (por defecto `es-ES`) |
+| *(sin argumentos)* | Abre la interfaz gráfica (`tkinter`) |
+| `input` | Ruta del archivo `.md` de entrada |
+| `-t`, `--template` | Ruta de la plantilla `.docx` a usar como `--reference-doc` |
+| `--no-template` | Ignora la plantilla por defecto y usa los estilos base de pandoc |
+| `-o`, `--output` | Ruta personalizada de salida (por defecto: junto al `.md`) |
+| `--toc` | Inserta una tabla de contenidos (índice) al inicio del documento |
+| `--number-sections` | Numera automáticamente los encabezados y secciones |
+| `--lang` | Código de idioma del documento (por defecto `es-ES`) |
 | `--init-template` | Crea `plantillas/plantilla_base.docx` y termina |
+| `--cli` | Fuerza el modo interactivo en consola en lugar de abrir la ventana |
 
-### Qué plantilla se usa
+---
 
-1. La indicada con `-t`, si existe.
-2. Si no, `plantillas/plantilla_base.docx` junto al script, si existe.
-3. Si no, ninguna (estilos por defecto de pandoc).
-4. `--no-template` salta los pasos 1 y 2.
+## Flujo de trabajo recomendado
 
-## Modus operandi recomendado
-
-1. Escribe el contenido en `.md` con metadatos YAML al inicio:
+1. Redacta el documento en Markdown (`.md`), incluyendo opcionalmente un bloque de metadatos YAML al inicio:
    ```yaml
    ---
-   title: Memoria técnica de climatización
+   title: Memoria técnica del proyecto
    author: Nombre Apellidos
-   date: 26 de noviembre de 2026
+   date: Noviembre 2026
    ---
    ```
-2. Ejecuta el script.
-3. Abre el `.docx`. Si usaste `--toc`, actualiza el índice (clic derecho > *Actualizar campo*, o F9).
-4. **Si necesitas cambiar el formato, edita la plantilla, no el resultado.** El `.md` es la fuente de verdad: si retocas el `.docx` a mano y vuelves a convertir, pierdes esos cambios.
+2. Convierte el archivo con **md2docx**.
+3. Si activaste la opción de **Índice (TOC)**, al abrir el `.docx` en Word haz **clic derecho sobre el índice > Actualizar campo** (o pulsa `F9`) para que Word calcule los números de página.
+4. **Mantén el `.md` como fuente única de verdad:** si quieres cambiar tipografías, colores o márgenes, modifica los estilos en `plantilla_base.docx` y vuelve a convertir, en lugar de editar el `.docx` final a mano.
 
-## Cómo está hecho
+---
 
-Un único archivo, `md2docx.py`, sin dependencias externas de Python. Llama a pandoc directamente con `subprocess`, sin `pypandoc`, para tener una dependencia menos y ver los errores reales de pandoc.
+## Arquitectura interna (`md2docx.py`)
 
-### Funciones
+El script está diseñado en un único archivo autocontenido con separación clara entre el motor de conversión y las interfaces de usuario:
 
-| Función | Responsabilidad |
+| Componente / Función | Responsabilidad |
 |---|---|
-| `clean_path(raw)` | Quita comillas y espacios de una ruta, y expande `~` |
-| `check_pandoc()` | Comprueba con `shutil.which` que pandoc está en el PATH; si no, termina con error |
-| `init_template()` | Ejecuta `pandoc --print-default-data-file reference.docx` y guarda `plantillas/plantilla_base.docx`. Pregunta antes de sobrescribir. Si la versión de pandoc devuelve el contenido por stdout en vez de escribirlo con `-o`, lo guarda desde stdout |
-| `ask_interactive()` | Pide archivo, plantilla, índice y numeración cuando no hay argumentos |
-| `resolve_output(md, output)` | Decide la ruta de salida; si existe, pregunta entre sobrescribir, crear versión nueva (`_v2`, `_v3`...) o cancelar; detecta archivos bloqueados |
-| `convert(args)` | Valida entradas, monta el comando de pandoc, lo ejecuta y muestra avisos y errores |
-| `main()` | Define los argumentos con `argparse` y decide entre `--init-template`, modo interactivo o conversión |
+| `check_pandoc()` | Verifica mediante `shutil.which` que `pandoc` esté disponible en el `PATH` |
+| `create_default_template()` | Extrae `reference.docx` desde pandoc y lo guarda en `plantillas/plantilla_base.docx` |
+| `resolve_output_path()` | Calcula la ruta destino junto al `.md`, gestiona colisiones (`_v2`, `_v3`...) y detecta bloqueos de archivo en Windows |
+| `run_conversion()` | Valida entradas, construye el comando de `pandoc`, ejecuta el subproceso y captura avisos/errores |
+| `launch_gui()` | Construye y gestiona la interfaz gráfica en `tkinter` / `ttk` |
+| `show_fatal_error()` | Muestra cuadros de error nativos (`MessageBoxW` en Windows / `tkinter`) si ocurre un fallo crítico al arrancar sin consola |
+| `main()` | Gestiona los argumentos con `argparse` y decide si lanzar la GUI, el modo CLI o `--init-template` |
 
-### Comando de pandoc que se ejecuta
-
-```
-pandoc entrada.md -f markdown -t docx -o salida.docx \
-  --resource-path <carpeta del .md> \
-  -M lang=es-ES \
-  [--reference-doc plantilla.docx] [--toc] [--number-sections]
-```
-
-- `--resource-path` hace que las imágenes con rutas relativas se resuelvan desde la carpeta del `.md`.
-- `-M lang=es-ES` fija el idioma para ortografía y comillas.
-
-### Validaciones previas
-
-- pandoc disponible en el PATH.
-- El `.md` existe (si la extensión no es `.md` o `.markdown`, solo avisa).
-- La plantilla existe y es `.docx`; se rechaza `.dotx`.
-- Si el `.docx` de salida existe, se pregunta antes de tocarlo.
-
-### Archivo abierto en Word (Windows)
-
-Word bloquea el `.docx` que tiene abierto. Si el destino existe, el script intenta abrirlo en modo añadir; si salta `PermissionError`, guarda con sufijo de versión y lo avisa, en vez de fallar.
-
-### Salida de errores
-
-Los avisos de pandoc (`stderr`) se muestran siempre, aunque la conversión termine bien. Si pandoc devuelve un código distinto de 0, el script termina con ese código en el mensaje.
-
-## Limitaciones conocidas
-
-- Pandoc usa sus propios nombres de estilo (`Body Text`, `First Paragraph`, `Compact`...), no `Normal`. Modificar solo `Normal` en la plantilla no basta.
-- Las pipe tables calculan los anchos de columna según la longitud de las líneas separadoras (`---`). Las tablas anchas de cálculo pueden salir mal repartidas; la solución v1 es ajustar los guiones del `.md` a mano.
-- El índice (`--toc`) es un campo de Word y no se rellena hasta que lo actualizas al abrir el documento.
-- Si una imagen no se encuentra, pandoc avisa pero genera el documento igualmente.
+---
 
 ## Solución de problemas
 
-| Síntoma | Causa probable | Qué hacer |
+| Síntoma | Causa probable | Solución |
 |---|---|---|
-| `pandoc no está en el PATH` | No instalado o terminal abierta antes de instalar | Instalar y abrir una terminal nueva |
-| `la plantilla debe ser .docx` | Plantilla guardada como `.dotx` | Guardar como `.docx` en Word |
-| El formato no cambia | Formato directo en vez de estilos en la plantilla | Modificar los estilos de pandoc, no el texto |
-| Sale `..._v2.docx` | El original estaba abierto en Word | Cerrarlo y reconvertir, o usar el `_v2` |
-| `--init-template` falla | Diferencia entre versiones de pandoc | Probar a mano `pandoc -o plantilla_base.docx --print-default-data-file reference.docx` y revisar el error |
-| Caracteres raros en la terminal | Codificación de la consola de Windows | Ejecutar `chcp 65001` antes del script |
-
-## Hoja de ruta (v2)
-
-- Postprocesado con `python-docx`: portada corporativa, anchos de tabla, pies con numeración.
-- Selector gráfico de archivos con `tkinter` como alternativa al modo interactivo de terminal.
-- Procesado por lotes de una carpeta de `.md`.
+| `pandoc no está en el PATH` | Pandoc no está instalado o la sesión no se ha reiniciado tras instalarlo | Instala pandoc y cierra/abre la aplicación o terminal |
+| `pandoc necesita la plantilla en formato .docx` | Guardaste la plantilla en Word como `.dotx` | Ábrela en Word y guárdala como **Documento de Word (`.docx`)** |
+| Los cambios en la plantilla no se reflejan | Se aplicó formato directo al texto o se editó el estilo `Normal` | En la plantilla, edita los estilos específicos de pandoc (`Body Text`, `First Paragraph`, `Heading 1`...) |
+| Se genera `archivo_v2.docx` automáticamente | El `.docx` original estaba abierto en Word o tienes marcada la opción de crear versión | Cierra el documento en Word antes de sobrescribirlo |
+| Al hacer doble clic en `.py` se abre IDLE o el Bloc de notas | Windows tiene asociado `.py` a un editor en lugar del intérprete de Python | Haz clic derecho > *Abrir con* > *Python*, o usa un acceso directo `.bat` con `pythonw` |
+| El índice (TOC) aparece vacío al abrir Word | Pandoc inserta el campo dinámico de Word pero no lo calcula | Haz clic derecho sobre el índice en Word > *Actualizar campo* (o pulsa `F9`) |
